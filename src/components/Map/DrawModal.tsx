@@ -9,9 +9,10 @@ interface DrawModalProps {
   coordinates: Array<{wp: string, coords: number[], distance: number}>;
   mode: 'linestring' | 'polygon' | null;
   onInsertPolygon: (position: 'before' | 'after') => void;
+  onImportPoints: () => void;
 }
 
-export const DrawModal = ({ isOpen, onClose, coordinates, mode, onInsertPolygon }: DrawModalProps) => {
+export const DrawModal = ({ isOpen, onClose, coordinates, mode, onInsertPolygon, onImportPoints }: DrawModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
@@ -69,7 +70,7 @@ export const DrawModal = ({ isOpen, onClose, coordinates, mode, onInsertPolygon 
             {mode === 'polygon' && (
               <Button 
                 variant="secondary"
-                onClick={() => {/* Handle import points */}}
+                onClick={onImportPoints}
               >
                 Import Points
               </Button>

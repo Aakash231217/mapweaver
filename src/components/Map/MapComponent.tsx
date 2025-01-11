@@ -23,6 +23,7 @@ const MapComponent = () => {
   const [coordinates, setCoordinates] = useState<Array<{wp: string, coords: number[], distance: number}>>([]);
   const vectorSourceRef = useRef(new VectorSource());
   const drawRef = useRef<Draw | null>(null);
+  const [polygonCoords, setPolygonCoords] = useState<Array<{wp: string, coords: number[], distance: number}>>([]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -52,6 +53,14 @@ const MapComponent = () => {
     };
   }, []);
 
+  const calculateDistance = (coord1: number[], coord2: number[]): number => {
+    const line = new LineString([
+      fromLonLat(coord1),
+      fromLonLat(coord2)
+    ]);
+    return Math.round(getLength(line));
+  };
+
   const startDrawing = (type: 'linestring' | 'polygon') => {
     if (!map) return;
 
@@ -73,18 +82,27 @@ const MapComponent = () => {
       if (geometry instanceof LineString) {
         const coords = geometry.getCoordinates().map(coord => toLonLat(coord));
         const newCoordinates = coords.map((coord, index) => {
-          const distance = index > 0 ? 
-            getLength(new LineString([coords[index-1], coord])) : 0;
-          
+          const distance = index > 0 ? calculateDistance(coords[index-1], coord) : 0;
           return {
             wp: `${index.toString().padStart(2, '0')}`,
             coords: coord,
-            distance: Math.round(distance)
+            distance
           };
         });
-        
         setCoordinates(newCoordinates);
         toast.success("Linestring drawn successfully!");
+      } else if (geometry instanceof Polygon) {
+        const coords = geometry.getCoordinates()[0].map(coord => toLonLat(coord));
+        const newPolygonCoords = coords.map((coord, index) => {
+          const distance = index > 0 ? calculateDistance(coords[index-1], coord) : 0;
+          return {
+            wp: `${index.toString().padStart(2, '0')}`,
+            coords: coord,
+            distance
+          };
+        });
+        setPolygonCoords(newPolygonCoords);
+        toast.success("Polygon drawn successfully!");
       }
     });
 
@@ -98,6 +116,15 @@ const MapComponent = () => {
     };
 
     document.addEventListener('keydown', handleKeyPress);
+  };
+
+  const handleImportPoints = () => {
+    if (polygonCoords.length > 0) {
+      setCoordinates(prev => [...prev, ...polygonCoords]);
+      setPolygonCoords([]);
+      setDrawingMode('linestring');
+      toast.success("Polygon points imported successfully!");
+    }
   };
 
   return (
@@ -116,12 +143,13 @@ const MapComponent = () => {
       <DrawModal 
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        coordinates={coordinates}
+        coordinates={drawingMode === 'polygon' ? polygonCoords : coordinates}
         mode={drawingMode}
         onInsertPolygon={(position) => {
           setDrawingMode('polygon');
-          // Handle polygon insertion logic
+          startDrawing('polygon');
         }}
+        onImportPoints={handleImportPoints}
       />
     </div>
   );
