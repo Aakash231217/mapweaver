@@ -12,3 +12,6 @@ npm i
 npm run dev
 ```
 
+## How to use it ?
+![Uploading image.png…]()
+As you can see some lines are already drawn but let's start from scratch, Click on the draw button to start drawing your line
