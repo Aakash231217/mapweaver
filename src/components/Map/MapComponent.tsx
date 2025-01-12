@@ -102,7 +102,7 @@ const MapComponent = () => {
           };
         });
         setPolygonCoords(newPolygonCoords);
-        toast.success("Polygon drawn successfully!");
+        toast.success("Polygon has been drawn successfully!");
       }
     });
 
